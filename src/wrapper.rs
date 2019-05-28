@@ -387,7 +387,9 @@ impl FieldKind {
                 let as_ref = match &result.ref_ty {
                     RefType::Ref | RefType::Deref(_) => {
                         let unwrapped_type = match &**fk {
-                            FieldKind::Bytes | FieldKind::Repeated => "::std::vec::Vec",
+                            FieldKind::Bytes => "::bytes::Bytes",
+                            FieldKind::String => "::prost::BytesString",
+                            FieldKind::Repeated => "::std::vec::Vec",
                             _ => &unwrapped_type,
                         };
                         result.mt = MethodKind::Custom(format!(
@@ -415,14 +417,14 @@ impl FieldKind {
                     }
                     FieldKind::Bytes => {
                         result.take = Some(format!(
-                            "self.{}.take().unwrap_or_else(::std::vec::Vec::new)",
+                            "self.{}.take().unwrap_or_else(::bytes::Bytes::new)",
                             result.name,
                         ));
                         "&[]".to_owned()
                     }
                     FieldKind::String => {
                         result.take = Some(format!(
-                            "self.{}.take().unwrap_or_else(::std::string::String::new)",
+                            "self.{}.take().unwrap_or_else(::prost::BytesString::new)",
                             result.name,
                         ));
                         "\"\"".to_owned()
@@ -474,7 +476,7 @@ impl FieldKind {
                 result.ref_ty = RefType::Deref("[u8]".to_owned());
                 result.mt = MethodKind::Standard;
                 result.take = Some(format!(
-                    "::std::mem::replace(&mut self.{}, ::std::vec::Vec::new())",
+                    "::std::mem::replace(&mut self.{}, ::bytes::Bytes::new())",
                     result.name
                 ));
             }
@@ -482,7 +484,7 @@ impl FieldKind {
                 result.ref_ty = RefType::Deref("str".to_owned());
                 result.mt = MethodKind::Standard;
                 result.take = Some(format!(
-                    "::std::mem::replace(&mut self.{}, ::std::string::String::new())",
+                    "::std::mem::replace(&mut self.{}, ::prost::BytesString::new())",
                     result.name
                 ));
             }
